@@ -61,3 +61,58 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 # Run tests
 pytest tests/ -v
 ```
+
+---
+
+## Phase 1 — Model Abstraction
+
+**Date:** 2026-09-10
+**Status:** Done
+
+### Files Created
+
+| File | Description |
+|---|---|
+| `app/models/__init__.py` | Empty package marker |
+| `app/models/schemas.py` | `TaskType`, `PricingInfo`, `CapabilitySet`, `ModelMetadata` Pydantic models |
+| `app/models/registry.py` | `ModelRegistry` — register/unregister, get/get_all/get_by_provider, filter_by_task/filter_by_capability |
+| `app/models/providers/__init__.py` | Empty package marker |
+| `app/models/providers/base.py` | `BaseProvider` ABC + `ProviderResponse` schema |
+| `app/models/providers/openai.py` | `OpenAIProvider` concrete adapter (official `openai` SDK) |
+| `app/models/providers/anthropic.py` | `AnthropicProvider` concrete adapter (official `anthropic` SDK) |
+| `tests/test_schemas.py` | 12 tests for Pydantic models |
+| `tests/test_registry.py` | 14 tests for ModelRegistry |
+| `tests/test_settings.py` | Updated — 6 tests (fixed env-var isolation with `_fresh_settings`) |
+
+### Modified Files
+
+| File | Change |
+|---|---|
+| `app/config/settings.py` | Added `openai_api_key`, `anthropic_api_key` fields |
+| `.env.example` | Added `OPENAI_API_KEY=`, `ANTHROPIC_API_KEY=` |
+| `requirements.txt` | Added `openai`, `anthropic` |
+
+### Key Decisions
+
+- **Quality score** defaults to `0.0` — placeholder until Phase 11 (historical feedback) populates real scores.
+- **Provider adapters** use official SDKs (`openai`, `anthropic`) behind the `BaseProvider` ABC.
+- **Token counting** uses a `len(text) // 4` heuristic (Phase 0-1 approximation; Phase 6 will refine).
+
+### Test Results
+
+```
+58 passed in 0.29s
+```
+
+| Suite | Count | Coverage |
+|---|---|---|
+| `test_connections.py` | 12 | PostgreSQL, Redis, Langfuse, LangSmith health probes |
+| `test_health.py` | 10 | All 4 health endpoints + degraded/ok/skipped states |
+| `test_registry.py` | 14 | Register/unregister, filters by task/capability/provider |
+| `test_schemas.py` | 12 | TaskType, PricingInfo cost calc, CapabilitySet, ModelMetadata validation |
+| `test_settings.py` | 6 | Defaults, singleton, env overrides, empty provider keys |
+
+### Dependencies Installed
+
+- `openai` — official OpenAI SDK for `OpenAIProvider`
+- `anthropic` — official Anthropic SDK for `AnthropicProvider`
