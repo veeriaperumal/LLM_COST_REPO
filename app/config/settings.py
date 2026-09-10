@@ -42,8 +42,10 @@ class Settings(BaseSettings):
     langchain_tracing_v2: bool = True
     langchain_project: str = "llm-cost-router"
 
-    # -- LLM Provider -------------------------------------------------------
+    # -- LLM Providers ------------------------------------------------------
     provider_api_key: str = ""
+    openai_api_key: str = ""
+    anthropic_api_key: str = ""
 
 
 @lru_cache
