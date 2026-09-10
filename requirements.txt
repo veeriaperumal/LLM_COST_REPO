@@ -1,0 +1,16 @@
+FastAPI
+Pydantic
+pydantic-settings
+SQLAlchemy
+Alembic
+psycopg2-binary
+Redis
+LangChain
+LangGraph
+Langfuse
+LangSmith
+python-dotenv
+pytest
+pytest-asyncio
+httpx
+uvicorn
