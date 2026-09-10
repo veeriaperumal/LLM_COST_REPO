@@ -159,3 +159,5 @@ cython_debug/
 
 # VS Code
 .vscode/
+
+completed.md
