@@ -55,6 +55,11 @@ class Settings(BaseSettings):
     cors_allow_headers: str = "*"
     cors_allow_credentials: bool = True
 
+    # -- MCP (Model Context Protocol) ----------------------------------------
+    mcp_allowed_tools: str = "search_knowledge,calculate,get_customer"
+    mcp_tool_timeout: int = 10
+    mcp_injection_extra_patterns: str = ""
+
 
 @lru_cache
 def get_settings() -> Settings:

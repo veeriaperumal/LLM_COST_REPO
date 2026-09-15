@@ -1,11 +1,12 @@
 # ---------------------------------------------------------------------------
-# route.py — POST /api/v1/route
+# route.py — POST /api/v1/route and POST /api/v1/route/graph
 # ---------------------------------------------------------------------------
-# Demonstrates the standard envelope, error handling, and CORS in one place:
-# accepts a routing request, delegates to the Phase 3 RouterEngine, and wraps
-# the result in the ApiResponse envelope.  Routing failures surface as a
-# 400 INVALID_INPUT error.
+# The /route endpoint demonstrates the standard envelope using the Phase 3
+# RouterEngine directly.  The /route/graph endpoint invokes the full
+# LangGraph state machine for stateful orchestration with checkpointing.
 # ---------------------------------------------------------------------------
+
+import uuid
 
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
@@ -43,7 +44,48 @@ async def route_request(payload: RouteRequest) -> ApiResponse:
     try:
         result = engine.route(RoutingRequest(**payload.model_dump()))
     except RoutingError as exc:
-        # Translate a failed routing decision into a standard error.
         raise InvalidInputError(exc.message) from exc
 
     return ok(result.model_dump())
+
+
+@router.post("/graph", response_model=ApiResponse)
+async def route_request_graph(payload: RouteRequest) -> ApiResponse:
+    """Route a request through the full LangGraph state machine.
+
+    The workflow runs: analyze → filter → route → execute → evaluate → finalize.
+    Persistent checkpoints allow resumption after interruptions.
+    """
+    from app.graph.builder import build_graph
+
+    graph = build_graph()
+
+    initial_state = {
+        "request": RoutingRequest(**payload.model_dump()).model_dump(),
+        "routing_result": None,
+        "selected_model": None,
+        "provider_response": None,
+        "evaluation": {"score": 0.0, "status": "pending", "reason": ""},
+        "retry_count": 0,
+        "max_retries": 2,
+        "unavailable_models": list(payload.unavailable_models),
+        "mcp_tool_results": [],
+        "result": None,
+        "error": None,
+        "stages_completed": [],
+    }
+
+    thread_id = str(uuid.uuid4())
+    config = {"configurable": {"thread_id": thread_id}}
+
+    try:
+        final_state = await graph.ainvoke(initial_state, config=config)
+    except Exception as exc:
+        raise InvalidInputError(f"Graph execution failed: {exc}") from exc
+
+    result = final_state.get("result")
+    if result is None:
+        error = final_state.get("error") or "Graph produced no result"
+        raise InvalidInputError(error)
+
+    return ok(result)
