@@ -60,6 +60,10 @@ class Settings(BaseSettings):
     mcp_tool_timeout: int = 10
     mcp_injection_extra_patterns: str = ""
 
+    # -- Dashboard -----------------------------------------------------------
+    dashboard_port: int = 8501
+    api_base_url: str = "http://localhost:8000"
+
 
 @lru_cache
 def get_settings() -> Settings:

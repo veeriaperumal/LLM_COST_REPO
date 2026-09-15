@@ -8,6 +8,7 @@
 from fastapi import APIRouter
 
 from app.api.health import router as health_router
+from app.api.models import router as models_router
 from app.api.route import router as route_router
 
 # Master router — all API sub-routers are included here.
@@ -15,3 +16,4 @@ api_router = APIRouter(prefix="/api/v1")
 
 api_router.include_router(health_router)
 api_router.include_router(route_router)
+api_router.include_router(models_router)
