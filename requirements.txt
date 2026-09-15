@@ -16,3 +16,6 @@ httpx
 uvicorn
 openai
 anthropic
+streamlit
+plotly
+pandas
