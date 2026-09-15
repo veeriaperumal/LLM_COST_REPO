@@ -36,6 +36,7 @@ def _fresh_settings(**overrides: str | None) -> Settings:
                 "DEBUG",
                 "OPENAI_API_KEY",
                 "ANTHROPIC_API_KEY",
+                "CORS_",
             )
         )
     }
@@ -88,3 +89,22 @@ def test_settings_env_override():
     s = _fresh_settings(APP_NAME="custom-app", DEBUG="true")
     assert s.app_name == "custom-app"
     assert s.debug is True
+
+
+def test_settings_cors_defaults():
+    """CORS defaults: wide-open allowlist, all methods/headers, credentials."""
+    s = _fresh_settings()
+    assert s.cors_origins == "*"
+    assert s.cors_allow_methods == "*"
+    assert s.cors_allow_headers == "*"
+    assert s.cors_allow_credentials is True
+
+
+def test_settings_cors_override():
+    """CORS values can be set via environment variables."""
+    s = _fresh_settings(
+        CORS_ORIGINS="https://app.example.com,https://admin.example.com",
+        CORS_ALLOW_CREDENTIALS="false",
+    )
+    assert s.cors_origins == "https://app.example.com,https://admin.example.com"
+    assert s.cors_allow_credentials is False

@@ -47,6 +47,14 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     anthropic_api_key: str = ""
 
+    # -- CORS ---------------------------------------------------------------
+    # Comma-separated list e.g. "https://a.com,https://b.com" or "*".
+    # "*" is only honoured when credentials are disabled (Starlette rule).
+    cors_origins: str = "*"
+    cors_allow_methods: str = "*"
+    cors_allow_headers: str = "*"
+    cors_allow_credentials: bool = True
+
 
 @lru_cache
 def get_settings() -> Settings:
